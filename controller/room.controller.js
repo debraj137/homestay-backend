@@ -10,7 +10,8 @@ async function createRoom(req, res) {
             location, // object with addressLine1, addressLine2, city, state, pincode
             price,
             images,
-            amenities
+            amenities,
+            maximumAllowedGuest
         } = req.body;
 
         const room = new Room({
@@ -20,6 +21,7 @@ async function createRoom(req, res) {
             price,
             images,
             amenities,
+            maximumAllowedGuest,
             ownerId: req.user.userId
         });
         await room.save();

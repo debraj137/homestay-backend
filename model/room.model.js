@@ -14,6 +14,7 @@ const roomSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   images: [{ type: String }],
   amenities: [{ type: String }],
+  maximumAllowedGuest: {type: Number,required: true,min: 1},
   isApproved: { type: Boolean, default: false },
   isAvailable: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }

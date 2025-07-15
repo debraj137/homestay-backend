@@ -10,13 +10,26 @@ const bookingRoute = require("../homestay-backend/route/booking.route");
 const roomRoute = require("../homestay-backend/route/room.route");
 const reviewRoute = require("../homestay-backend/route/review.route");
 app.use(cors());
-app.use("/auth",authRoute);
-app.use("/rooms",roomRoute);
-app.use("/bookings",bookingRoute);
-app.use("/reviews",reviewRoute);
-app.use("/admin",adminRoute);
+app.use("/auth", authRoute);
+app.use("/rooms", roomRoute);
+app.use("/bookings", bookingRoute);
+app.use("/reviews", reviewRoute);
+app.use("/admin", adminRoute);
 mongoose.connect(process.env.DB_URL)
-  .then(() => app.listen(process.env.PORT || 3000, () =>  
+  .then(() => app.listen(process.env.PORT || 3000, () =>
     console.log('Server running')))
   .catch(err => console.log(err));
+
+
+
+// const Room = require('../homestay-backend/model/room.model')
+// async function backfillMaximumGuests() {
+//   const result = await Room.updateMany(
+//     { maximumAllowedGuest: { $exists: false } },
+//     { $set: { maximumAllowedGuest: 2 } }
+//   );
+//   console.log(`Backfilled ${result.modifiedCount} room(s) with max guests`);
+// }
+
+// backfillMaximumGuests();
 
