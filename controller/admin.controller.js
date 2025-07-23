@@ -26,7 +26,7 @@ async function approveRoom(req, res) {
 async function getOwnerListWithTheirRoomList(req, res) {
   try {
     const owners = await User.find({ role: 'owner' });
-    console.log('owners: ',owners);
+    // console.log('owners: ',owners);
     // For each owner, find their rooms
     const ownerRoomList = await Promise.all(owners.map(async (owner) => {
       const rooms = await Room.find({ ownerId: owner._id });
@@ -42,9 +42,9 @@ async function getOwnerListWithTheirRoomList(req, res) {
 
     res.status(200).json(ownerRoomList);
   } catch (err) {
-    console.error('Failed to fetch owner room list:', err);
+    // console.error('Failed to fetch owner room list:', err);
     res.status(500).json({ message: 'Server error' });
   }
 }
 
-module.exports = { getPendingRooms, approveRoom, getOwnerListWithTheirRoomList }
+module.exports = { getPendingRooms, approveRoom, getOwnerListWithTheirRoomList } 
