@@ -7,5 +7,5 @@ router.post('/', auth.verifyToken, roomController.createRoom);
 router.get('/', roomController.getAllApprovedRooms);
 router.get('/owner', auth.verifyToken, roomController.getOwnerRooms);
 router.post('/search/city', roomController.getRoomsByCity);
-
+router.post('/getById', roomController.getRoomById);
 module.exports = router;

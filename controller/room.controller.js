@@ -33,7 +33,7 @@ async function createRoom(req, res) {
         }
         res.status(201).json({ message: 'Room submitted for approval' });
     } catch (err) {
-        console.log("error in roomController: ",err)
+        console.log("error in roomController: ", err)
         res.status(500).json({ message: 'Failed to create room' });
     }
 };
@@ -57,23 +57,44 @@ async function getOwnerRooms(req, res) {
 };
 
 async function getRoomsByCity(req, res) {
-     try {
-    const { city } = req.body; // or use req.query.city for GET
+    try {
+        const { city } = req.body; // or use req.query.city for GET
 
-    if (!city) {
-      return res.status(400).json({ message: 'City is required' });
+        if (!city) {
+            return res.status(400).json({ message: 'City is required' });
+        }
+
+        const rooms = await Room.find({
+            'location.city': { $regex: city, $options: 'i' },
+            isApproved: true
+        });
+
+        res.json(rooms);
+    } catch (err) {
+        console.error('Error getting rooms by city:', err);
+        res.status(500).json({ message: 'Failed to fetch rooms' });
     }
-
-    const rooms = await Room.find({
-      'location.city': { $regex: city, $options: 'i' },
-      isApproved: true
-    });
-
-    res.json(rooms);
-  } catch (err) {
-    console.error('Error getting rooms by city:', err);
-    res.status(500).json({ message: 'Failed to fetch rooms' });
-  }
 }
 
-module.exports = { createRoom, getAllApprovedRooms, getOwnerRooms, getRoomsByCity}
+async function getRoomById(req, res) {
+    try {
+        const { roomId } = req.body;
+
+        if (!roomId) {
+            return res.status(400).json({ message: 'roomId is required in request body' });
+        }
+
+        const room = await Room.findById(roomId);
+
+        if (!room) {
+            return res.status(404).json({ message: 'Room not found' });
+        }
+
+        res.status(200).json(room);
+    } catch (err) {
+        console.error('Error fetching room:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+module.exports = { createRoom, getAllApprovedRooms, getOwnerRooms, getRoomsByCity, getRoomById }
