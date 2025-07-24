@@ -50,7 +50,7 @@ async function createBooking(req, res){
 };
 
 async function getUserBookings(req, res){
-  console.log('req in getUserBookings: ',req);
+  // console.log('req in getUserBookings: ',req);
   try {
     const bookings = await Booking.find({ userId: req.user.userId }).populate('roomId');
     res.json(bookings);
@@ -58,6 +58,19 @@ async function getUserBookings(req, res){
     res.status(500).json({ message: 'Failed to fetch bookings' });
   }
 };
+
+async function getAllBooking(req, res) {
+  try {
+     const bookings = await Booking.find()
+    .populate('roomId')  // Already populated
+    .populate('userId', 'name email') // 👈 Only fetch name & email of user
+    .exec();
+
+  res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch bookings' });
+  }
+}
 
 async function getBookingsForRoom(req, res) {
   try {
@@ -97,4 +110,4 @@ async function getOwnerRoomBooking(req, res) {
   }
 }
 
-module.exports = {createBooking, getUserBookings, getBookingsForRoom, getOwnerRoomBooking}
+module.exports = {createBooking, getUserBookings, getBookingsForRoom, getOwnerRoomBooking, getAllBooking}
