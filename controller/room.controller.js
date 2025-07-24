@@ -38,6 +38,32 @@ async function createRoom(req, res) {
     }
 };
 
+async function updateRoom(req, res) {
+    console.log('req in updateRoom: ', req.body._id);
+    try {
+        const roomId = req.body._id; // ✅ ID from body
+        const updateData = { ...req.body };
+        delete updateData._id; // Remove _id to prevent overwrite
+
+        const updatedRoom = await Room.findByIdAndUpdate(roomId, updateData, {
+            new: true,
+            runValidators: true,
+        });
+
+        if (!updatedRoom) {
+            return res.status(404).json({ message: 'Room not found' });
+        }
+
+        res.status(200).json({
+            message: 'Room updated successfully',
+            room: updatedRoom
+        });
+    } catch (error) {
+        console.error('Error updating room:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
 async function getAllApprovedRooms(req, res) {
     try {
         const rooms = await Room.find({ isApproved: true });
@@ -97,4 +123,4 @@ async function getRoomById(req, res) {
     }
 };
 
-module.exports = { createRoom, getAllApprovedRooms, getOwnerRooms, getRoomsByCity, getRoomById }
+module.exports = { createRoom, getAllApprovedRooms, getOwnerRooms, getRoomsByCity, getRoomById, updateRoom }
