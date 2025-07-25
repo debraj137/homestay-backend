@@ -9,4 +9,6 @@ router.get('/', roomController.getAllApprovedRooms);
 router.get('/owner', auth.verifyToken, roomController.getOwnerRooms);
 router.post('/search/city', roomController.getRoomsByCity);
 router.post('/getById', roomController.getRoomById);
+router.post('/filter', roomController.filterRoom);
+router.get('/amenities', roomController.getAmenities);
 module.exports = router;

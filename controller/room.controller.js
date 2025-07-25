@@ -39,7 +39,7 @@ async function createRoom(req, res) {
 };
 
 async function updateRoom(req, res) {
-    console.log('req in updateRoom: ', req.body._id);
+    // console.log('req in updateRoom: ', req.body._id);
     try {
         const roomId = req.body._id; // ✅ ID from body
         const updateData = { ...req.body };
@@ -64,14 +64,90 @@ async function updateRoom(req, res) {
     }
 }
 
+// async function getAllApprovedRooms(req, res) {
+//     try {
+//         const rooms = await Room.find({ isApproved: true });
+//         res.json(rooms);
+//     } catch (err) {
+//         res.status(500).json({ message: 'Failed to fetch rooms' });
+//     }
+// };
+
 async function getAllApprovedRooms(req, res) {
     try {
-        const rooms = await Room.find({ isApproved: true });
+        const { minPrice, maxPrice, amenities } = req.query;
+
+        const filter = { isApproved: true };
+
+        if (minPrice || maxPrice) {
+            filter.price = {};
+            if (minPrice) filter.price.$gte = Number(minPrice);
+            if (maxPrice) filter.price.$lte = Number(maxPrice);
+        }
+
+        if (amenities) {
+            const amenitiesArray = amenities.split(',');
+            filter.amenities = { $all: amenitiesArray };
+        }
+
+        const rooms = await Room.find(filter);
         res.json(rooms);
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch rooms' });
+        res.status(500).json({ error: "Something went wrong" });
     }
 };
+
+async function filterRoom(req, res) {
+    // console.log('req in filterRoom: ',req.body);
+    // const { city, maxPrice, amenities } = req.body;
+
+    // const query = {
+    //     'location.city': new RegExp(city, 'i'),
+    //     price: { $lte: maxPrice },
+    //     amenities: { $all: amenities }
+    // };
+
+    // const rooms = await Room.find(query);
+    // console.log("rooms in filterRoom: ",rooms)
+    // res.json(rooms);
+    try {
+        const { city, minPrice, maxPrice, amenities } = req.body;
+
+        const query = {isApproved: true};
+
+        // Filter by city (optional)
+        if (city && city.trim() !== '') {
+            //   query['location.city'] = new RegExp(city, 'i'); // case-insensitive
+            query['location.city'] = { $regex: `^${city.trim()}$`, $options: 'i' };
+            //  query['location.city'] = city
+        }
+
+        // Filter by price range
+        if (minPrice !== undefined && maxPrice !== undefined) {
+            query.price = { $gte: minPrice, $lte: maxPrice };
+        } else if (maxPrice !== undefined) {
+            query.price = { $lte: maxPrice };
+        } else if (minPrice !== undefined) {
+            query.price = { $gte: minPrice };
+        }
+
+        // ✅ Apply amenities filter only when amenities is not empty
+        if (amenities && amenities.length > 0) {
+            query.amenities = { $all: amenities };
+        }
+
+        // Find rooms based on final query
+        console.log('query in filter room: ', query);
+        const rooms = await Room.find(query);
+        res.json({
+            result: rooms.length,
+            rooms: rooms
+        });
+    } catch (error) {
+        console.error('Error while filtering rooms:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
 
 async function getOwnerRooms(req, res) {
     try {
@@ -123,4 +199,19 @@ async function getRoomById(req, res) {
     }
 };
 
-module.exports = { createRoom, getAllApprovedRooms, getOwnerRooms, getRoomsByCity, getRoomById, updateRoom }
+async function getAmenities(req, res) {
+    try {
+        const amenities = await Room.distinct('amenities');
+        res.json(amenities);
+    } catch (error) {
+        console.error('Error fetching amenities:', error);
+        res.status(500).json({ error: 'Failed to fetch amenities' });
+    }
+}
+
+module.exports = {
+    createRoom,
+    getAllApprovedRooms,
+    getOwnerRooms,
+    getRoomsByCity, getRoomById, updateRoom, filterRoom, getAmenities
+}
