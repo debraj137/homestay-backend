@@ -6,32 +6,99 @@ async function createBooking(req, res) {
   try {
     // console.log('request in createBooking: ',req);
     const { userId, roomId, checkInDate, checkOutDate, guestCount, totalPrice } = req.body;
-    console.log('req in createBooking: ',req.body);
+    // console.log('req in createBooking: ', req.body);
     // const room = await Room.findById(roomId);
     const room = await Room.findById(roomId).populate('ownerId');
     const user = await User.findById(userId);
     // console.log('room in createBooking: ',room);
     if (!room) {
-      return res.status(404).json({ message: 'Room not found' });  
+      return res.status(404).json({ message: 'Room not found' });
     }
 
     // ✅ Validate guest count
-    if (guestCount > room.maximumAllowedGuest) { 
+    if (guestCount > room.maximumAllowedGuest) {
       return res.status(400).json({
-        message: `Guest count exceeds allowed limit. Max allowed: ${room.maximumAllowedGuest}` 
+        message: `Guest count exceeds allowed limit. Max allowed: ${room.maximumAllowedGuest}`
+      });
+    }
+
+    if (new Date(checkInDate).getTime() >= new Date(checkOutDate).getTime()) {
+      return res.status(400).json({
+        message: `Check-in date must be before check-out date`
       });
     }
 
     // ✅ Check for overlapping bookings
-    const overlapping = await Booking.find({
-      roomId,
-      checkInDate: { $lt: new Date(checkOutDate) },
-      checkOutDate: { $gt: new Date(checkInDate) }
-    });
+    // const overlapping = await Booking.find({
+    //   roomId,
+    //   checkInDate: { $lt: new Date(checkOutDate) },
+    //   checkOutDate: { $gt: new Date(checkInDate) }
+    // });
+    // if (overlapping.length > 0) {
+    //   return res.status(400).json({ message: 'Room is not available for selected dates' });
+    // }
 
-    if (overlapping.length > 0) {
-      return res.status(400).json({ message: 'Room is not available for selected dates' });
+    //New implementation to check for overlapping bookings
+    const latestBooking = await Booking.find({
+      roomId: roomId,
+      checkInDate: { $lt: checkOutDate },
+      checkOutDate: { $gt: checkInDate }
+    }).sort({ checkOutDate: -1 }).limit(1);
+    console.log('latestBooking: ', latestBooking);
+    if (latestBooking.length > 0) {
+      // const nextAvailable = new Date(latestBooking[0].checkOutDate);
+      // nextAvailable.setDate(nextAvailable.getDate() + 1); // day after last checkout  
+      // return res.status(400).json({
+      //   success: false,
+      //   message: `Room is not available from ${formatDate(latestBooking[0].checkInDate)} to ${formatDate(latestBooking[0].checkOutDate)}.`,
+      //   nextAvailableCheckIn: formatDate(nextAvailable)
+      // });
+      const today = new Date();
+      const bookedFrom = new Date(latestBooking[0].checkInDate);
+      const bookedTo = new Date(latestBooking[0].checkOutDate);
+
+      const nextAvailable = new Date(bookedTo);
+      nextAvailable.setDate(nextAvailable.getDate() + 1); // day after booking ends
+
+      let availableBeforeBooking = null;
+
+      if (today < bookedFrom) {
+        const beforeBookingTo = new Date(bookedFrom); // clone
+        beforeBookingTo.setDate(beforeBookingTo.getDate() - 1);
+
+        // Only if from date is before to date
+        if (today <= beforeBookingTo) {
+          const adjustedBeforeBookingTo = new Date(beforeBookingTo);
+          adjustedBeforeBookingTo.setDate(adjustedBeforeBookingTo.getDate() + 1);
+          availableBeforeBooking = {
+            from: formatDate(today),
+            // to: formatDate(beforeBookingTo)
+            to: formatDate(adjustedBeforeBookingTo)
+          };
+        }
+      }
+      const adjustedBookedFrom = new Date(bookedFrom);
+      adjustedBookedFrom.setDate(adjustedBookedFrom.getDate() + 1);
+
+      const adjustedBookedTo = new Date(bookedTo);
+      adjustedBookedTo.setDate(adjustedBookedTo.getDate() - 1);
+      nextAvailable.setDate(nextAvailable.getDate() - 1);
+      return res.status(400).json({
+        success: false,
+        message: `Room is not available from ${formatDate(adjustedBookedFrom)} to ${formatDate(adjustedBookedTo)}.`,
+        nextAvailableCheckIn: formatDate(nextAvailable),
+        availableBeforeBooking
+      });
+
     }
+
+    // Utility
+    function formatDate(date) {
+      return new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+
+
 
     // ✅ Proceed to create booking if available
     const booking = new Booking({
@@ -72,8 +139,8 @@ async function createBooking(req, res) {
     `;
 
     // Send emails
-    await sendEmail(user.email, 'Booking Confirmation', bookingDetails + userDetails);
-    await sendEmail(room.ownerId.email, 'New Booking for Your Room', userDetails + bookingDetails);
+    // await sendEmail(user.email, 'Booking Confirmation', bookingDetails + userDetails);
+    // await sendEmail(room.ownerId.email, 'New Booking for Your Room', userDetails + bookingDetails);
 
     res.status(201).json({ message: 'Booking created and emails sent', booking });
 
