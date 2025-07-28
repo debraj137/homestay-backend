@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   phone: { type: String },
   role: { type: String, enum: ['user', 'owner', 'admin'], default: 'user' },
   isVerified: { type: Boolean, default: false }, // for owners
+  mobileNumber: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 

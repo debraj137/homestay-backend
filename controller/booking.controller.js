@@ -108,8 +108,9 @@ async function createBooking(req, res) {
       checkInDate,
       checkOutDate,
       totalPrice,
-      status: 'confirmed',
-      userId
+      status: 'confirmed',      
+      userId,
+      mobileNumber: user.mobileNumber, // ✅ NEW,
     });
 
     await booking.save();
@@ -136,6 +137,7 @@ async function createBooking(req, res) {
       <h2>User Details</h2>
       <p><strong>Name:</strong> ${user.name}</p>
       <p><strong>Email:</strong> ${user.email}</p>
+      <p><strong>Mobile:</strong> ${user.mobileNumber}</p>
     `;
 
     // Send emails

@@ -8,6 +8,7 @@ const bookingSchema = new mongoose.Schema({
   guestCount: { type: Number, required: true, min: 1},
   totalPrice: { type: Number, required: true },
   status: { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' },
+  mobileNumber: { type: String, required: true }, // ✅ NEW
   createdAt: { type: Date, default: Date.now }
 });
 
