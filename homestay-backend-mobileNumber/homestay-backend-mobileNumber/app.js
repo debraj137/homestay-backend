@@ -4,11 +4,12 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const cors = require('cors');
 app.use(express.json());
-const authRoute = require("../homestay-backend/route/auth.route");
-const adminRoute = require("../homestay-backend/route/admin.route");
-const bookingRoute = require("../homestay-backend/route/booking.route");
-const roomRoute = require("../homestay-backend/route/room.route");
-const reviewRoute = require("../homestay-backend/route/review.route");
+// const authRoute = require("../homestay-backend/route/auth.route");
+const authRoute = require("../homestay-backend-mobileNumber/route/auth.route");
+const adminRoute = require("../homestay-backend-mobileNumber/route/admin.route");
+const bookingRoute = require("../homestay-backend-mobileNumber/route/booking.route");
+const roomRoute = require("../homestay-backend-mobileNumber/route/room.route");
+const reviewRoute = require("../homestay-backend-mobileNumber/route/review.route");
 app.use(cors());
 app.use("/auth", authRoute);
 app.use("/rooms", roomRoute);
@@ -31,5 +32,5 @@ mongoose.connect(process.env.DB_URL)
 //   console.log(`Backfilled ${result.modifiedCount} room(s) with max guests`);
 // }
 
-// backfillMaximumGuests();
+// backfillMaximumGuests(); 
 
